@@ -1,27 +1,129 @@
+# #############################################################################
+"""
+Authors: Travis Page & Steven Demers
+Date: 04/06/2016
+File Name: client.py
+Project Name: udp-file-transfer
+"""
+# #############################################################################
+usage = """
+
+Description: Add description later
+
+Options:
+    -v, --verbose       increases verbosity level
+    -q, --quiet         zero verbosity level, i.e. no error prints
+
+Example: Add example later
+
+"""
+
+# #############################################################################
+# Program Imports
+# #############################################################################
 import socket
+from optparse import OptionParser
+import sys
+import struct
+import re
 
-# Reserve port
-port = 9876
-# Create socket object
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Get local machine name
-host = socket.gethostname()
 
-s.connect(('10.0.0.1', port))
-s.send("Hello server!")
+# #############################################################################
+# Process Arguments
+# #############################################################################
+def ProcessArguments():
 
-with open('received_file', 'wb') as f:
-	print 'file opened'
-	while True:
-		print 'receiving data...'
-		data = s.recv(1024)
-		print 'data=%s', (data)
-		if not data:
-			break
-		# Write data to file
-		f.write(data)
+    # Declare global variables here
+    global Options
 
-	f.close()
-	print 'Successfully received file'
-	s.close()
-	print 'Connection closed'
+    parser = OptionParser(usage=usage)
+
+    # Set up parser options
+    parser.add_option('-q', '--quiet',
+                      action='store_true',
+                      help='set verbosity to zero')
+    parser.add_option('-v', '--verbose',
+                      action='count', default=1,
+                      help='Increase verbosity of output')
+    parser.add_option('-p', '--performance',
+                      action='count', default=0,
+                      help='Display performance information')
+
+    Options, Args = parser.parse_args()
+
+    if Options.quiet:
+        Options.verbose = 0
+
+    if Options.verbose > 1:
+        print 'Verbose: %d' % Options.verbose
+
+    # Checks number of arguments given.
+    if len(Args) < 0:
+        print 'Not enough arguments given.'
+        sys.exit()
+
+
+# #############################################################################
+# Main function client
+# #############################################################################
+if __name__ == '__main__':
+
+    # Process Arguments
+    ProcessArguments()
+
+    # Reserve port
+    port = 9876
+
+    # Create socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # Get local machine name
+    host = socket.gethostname()
+
+    # Connect to server
+    s.connect(('127.0.0.1', port))
+    s.send("Hello server!")
+    dataBuff = ''
+
+    with open('received_file', 'wb') as f:
+        while True:
+            print 'Waiting for data'
+            recData = s.recv(1024)
+
+            # Check if the server is done sending the file
+            if re.search("About to close your connection", recData, re.IGNORECASE):
+                break
+
+            # Print debug info on packet size
+            if Options.verbose > 0:
+                print sys.getsizeof(recData)
+
+            # Print debug info on packet data
+            if Options.verbose > 2:
+                print 'data=' + repr(recData)
+
+            if not recData:
+                if Options.verbose > 1:
+                    print 'Did not get any data'
+                break
+
+            # Unpack packet header
+            unpack = struct.unpack('I', recData[0:4])
+            packetNum = unpack[0]
+
+            # Send response indicating the packet has be received
+            response = 'got packet ' + str(packetNum)
+            s.send(response)
+
+            # Print debug info on response data
+            if Options.verbose > 2:
+                print response
+
+            # Write data to file
+            packetData = recData[4:]
+            f.write(packetData)
+
+        f.close()
+        print 'Successfully received file'
+        s.close()
+        print 'Connection closed'

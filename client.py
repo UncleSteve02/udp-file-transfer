@@ -82,12 +82,14 @@ if __name__ == '__main__':
 
     # Connect to server
     s.connect(('127.0.0.1', port))
-    s.send("Hello server!")
+    s.send("Remember The Name.mp3")
     dataBuff = ''
+    window = []
+    total = 0
 
     with open('received_file', 'wb') as f:
         while True:
-            print 'Waiting for data'
+            #print 'Waiting for data'
             recData = s.recv(1024)
 
             # Check if the server is done sending the file
@@ -107,6 +109,7 @@ if __name__ == '__main__':
                     print 'Did not get any data'
                 break
 
+            total += 1
             # Unpack packet header
             unpack = struct.unpack('I', recData[0:4])
             packetNum = unpack[0]
@@ -117,12 +120,24 @@ if __name__ == '__main__':
 
             # Print debug info on response data
             if Options.verbose > 2:
-                print response
+                pass
+            print response
+
+            # Check if last packet was a resend
+            if recData in window:
+                continue
+
+            # Save last ten packets in window
+            if len(window) >= 10:
+                window.pop(0)
+            window.append(recData)
 
             # Write data to file
             packetData = recData[4:]
+            print "Writing packet " + str(packetNum)
             f.write(packetData)
 
+        print "Total packets received " + str(total)
         f.close()
         print 'Successfully received file'
         s.close()

@@ -104,6 +104,37 @@ def PrintPacketNum(window):
 
     print tempStr
 
+
+
+def SlideWindow(window):
+    # Slide window
+    while len(window) > 0:
+        if window[0] is None:
+            window.pop(0)
+        else:
+            break
+
+def CheckClientResponse(window, s):
+    # Check for the response packet from the client
+    try:
+        recData, temp = s.recvfrom(1024)  # Non Blocking
+        if recData is not None:
+            # Get response packet number
+            match = re.search("^.*(\d).*$", recData)
+            if match:
+                # Remove the corresponding data from the window
+                for data in window:
+                    if data is None:
+                        continue
+                    unpack = struct.unpack('I', data[0:4])
+                    packetNum = unpack[0]
+                    if packetNum is int(match.group(1)):
+                        window[window.index(data)] = None
+
+        SlideWindow(window)
+    except socket.error:
+        pass
+
 # #############################################################################
 # Main function for server
 # #############################################################################
@@ -158,31 +189,9 @@ if __name__ == '__main__':
                     if data is None:
                         continue
                     s.sendto(data, addr)
+                    
                     time.sleep(0.001)
-                    # Check for the response packet from the client
-                    try:
-                        recData, temp = s.recvfrom(1024)  # Non Blocking
-                        if recData is not None:
-                            # Get response packet number
-                            match = re.search("^.*(\d).*$", recData)
-                            if match:
-                                # Remove the corresponding data from the window
-                                for data in window:
-                                    if data is None:
-                                        continue
-                                    unpack = struct.unpack('I', data[0:4])
-                                    packetNum = unpack[0]
-                                    if packetNum is int(match.group(1)):
-                                        window[window.index(data)] = None
-
-                        # Slide window
-                        while len(window) > 0:
-                            if window[0] is None:
-                                window.pop(0)
-                            else:
-                                break
-                    except socket.error:
-                        pass
+                    CheckClientResponse(window, s)
 
             # Add data packet to the window and send to client
             window.append(dataPacket)
@@ -194,31 +203,7 @@ if __name__ == '__main__':
             if Options.verbose > 0:
                 print sys.getsizeof(dataPacket)
 
-            # Check for the response packet from the client
-            try:
-                recData, temp = s.recvfrom(1024)  # Non Blocking
-                if recData is not None:
-                    # Get response packet number
-                    match = re.search("^.*(\d).*$", recData)
-                    if match:
-                        # Remove the corresponding data from the window
-                        for data in window:
-                            if data is None:
-                                        continue
-                            unpack = struct.unpack('I', data[0:4])
-                            packetNum = unpack[0]
-                            if packetNum is int(match.group(1)):
-                                window[window.index(data)] = None
-
-            except socket.error:
-                pass
-
-            # Slide window
-            while len(window) > 0:
-                if window[0] is None:
-                    window.pop(0)
-                else:
-                    break
+            CheckClientResponse(window, s)
 
             # Print debug info data sent and received
             if Options.verbose > 2:
@@ -238,31 +223,9 @@ if __name__ == '__main__':
                 if data is None:
                     continue
                 s.sendto(data, addr)
-                # Check for the response packet from the client
-                time.sleep(0.001)
-                try:
-                    recData, temp = s.recvfrom(1024)  # Non Blocking
-                    if recData is not None:
-                        # Get response packet number
-                        match = re.search("^.*(\d).*$", recData)
-                        if match:
-                            # Remove the corresponding data from the window
-                            for data in window:
-                                if data is None:
-                                    continue
-                                unpack = struct.unpack('I', data[0:4])
-                                packetNum = unpack[0]
-                                if packetNum is int(match.group(1)):
-                                    window[window.index(data)] = None
 
-                    # Slide window
-                    while len(window) > 0:
-                        if window[0] is None:
-                            window.pop(0)
-                        else:
-                            break
-                except socket.error:
-                    pass
+                time.sleep(0.001)
+                CheckClientResponse(window, s)
 
         print "Total packets sent: " + str(total)
         s.sendto("About to close your connection", addr)

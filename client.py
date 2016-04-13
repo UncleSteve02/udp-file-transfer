@@ -81,7 +81,7 @@ if __name__ == '__main__':
     host = socket.gethostname()
 
     # Connect to server
-    s.connect(('127.0.0.1', port))
+    s.connect(('10.0.0.1', port))
     s.send("Remember The Name.mp3")
     dataBuff = ''
     window = []

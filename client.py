@@ -120,8 +120,7 @@ if __name__ == '__main__':
 
             # Print debug info on response data
             if Options.verbose > 2:
-                pass
-            print response
+                print response
 
             # Check if last packet was a resend
             if recData in window:

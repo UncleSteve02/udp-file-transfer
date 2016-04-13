@@ -105,7 +105,9 @@ def PrintPacketNum(window):
     print tempStr
 
 
-
+# #############################################################################
+# Function slides position of current window
+# #############################################################################
 def SlideWindow(window):
     # Slide window
     while len(window) > 0:
@@ -114,6 +116,11 @@ def SlideWindow(window):
         else:
             break
 
+
+# #############################################################################
+# Function checks response from client and removes packet from window and 
+# updates the window
+# #############################################################################
 def CheckClientResponse(window, s):
     # Check for the response packet from the client
     try:
@@ -134,6 +141,7 @@ def CheckClientResponse(window, s):
         SlideWindow(window)
     except socket.error:
         pass
+
 
 # #############################################################################
 # Main function for server
@@ -189,7 +197,7 @@ if __name__ == '__main__':
                     if data is None:
                         continue
                     s.sendto(data, addr)
-                    
+
                     time.sleep(0.001)
                     CheckClientResponse(window, s)
 

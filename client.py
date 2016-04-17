@@ -64,6 +64,23 @@ def ProcessArguments():
 
 
 # #############################################################################
+# Calculates the checksum based on data in the file
+# #############################################################################
+def carry_around_add(a, b):
+    c = a + b
+    return (c & 0xffff) + (c >> 16)
+
+def CalculateChecksum(msg):
+    s = 0
+    for i in range(0, len(msg), 2):
+        w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        s = carry_around_add(s, w)
+    checksum = struct.pack('I', (~s & 0xffff))
+    # print 'checksum = ', hex(~s & 0xffff)
+    return checksum      
+
+
+# #############################################################################
 # Main function client
 # #############################################################################
 if __name__ == '__main__':
@@ -111,6 +128,14 @@ if __name__ == '__main__':
 
             total += 1
             # Unpack packet header
+            # Check checksum, continue if correct
+            print 'recData[4:8] ==  CalculateChecksum(recData[8:]) > ', recData[4:8] == CalculateChecksum(recData[8:])
+            if (recData[4:8] != CalculateChecksum(recData[8:])):
+                print 'Checksums didn\'t match'
+                continue
+            # print 'recData[4:8] = ', repr(recData[4:8])
+            # print 'CalculateChecksum(recData[8:]) = ', repr(CalculateChecksum(recData[8:]))
+            # Unpack index
             unpack = struct.unpack('I', recData[0:4])
             packetNum = unpack[0]
 
@@ -132,7 +157,7 @@ if __name__ == '__main__':
             window.append(recData)
 
             # Write data to file
-            packetData = recData[4:]
+            packetData = recData[8:]
             print "Writing packet " + str(packetNum)
             f.write(packetData)
 

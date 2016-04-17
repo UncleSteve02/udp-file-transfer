@@ -28,6 +28,7 @@ import sys
 import struct
 import re
 import time
+import hashlib
 
 # #############################################################################
 # Program Imports
@@ -35,6 +36,7 @@ import time
 class Packet:
     def __init__(self):
         self.int = 0
+        self.checksum = 0
         self.data = [None] * 512
 
 # #############################################################################
@@ -144,6 +146,23 @@ def CheckClientResponse(window, s):
 
 
 # #############################################################################
+# Calculates the checksum based on data in the file
+# #############################################################################
+def carry_around_add(a, b):
+    c = a + b
+    return (c & 0xffff) + (c >> 16)
+
+def CalculateChecksum(msg):
+    s = 0
+    for i in range(0, len(msg), 2):
+        w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        s = carry_around_add(s, w)
+    checksum = struct.pack('I', (~s & 0xffff))
+    print 'checksum = ', hex(~s & 0xffff)
+    return checksum
+
+
+# #############################################################################
 # Main function for server
 # #############################################################################
 if __name__ == '__main__':
@@ -188,7 +207,8 @@ if __name__ == '__main__':
             # Set up data packet available
             i = GetNextAvailableNum(window)
             header = struct.pack('I', i)
-            dataPacket = header + fileData
+            checksum = CalculateChecksum(fileData)
+            dataPacket = header + checksum + fileData
 
             # Once the window is full doo not send new data
             while len(window) >= 5:

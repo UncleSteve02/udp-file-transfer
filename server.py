@@ -201,7 +201,7 @@ if __name__ == '__main__':
             fileToTransfer = open(str(filename), 'rb')
             print 'Got connection from ', addr
             print 'Server received ', repr(recData)
-        except IOError:
+        except (IOError, TypeError):
             continue
 
         fileData = fileToTransfer.read(512)
@@ -245,7 +245,6 @@ if __name__ == '__main__':
 
             # Read next data set from the file
             fileData = fileToTransfer.read(512)
-
 
         fileToTransfer.close()
 

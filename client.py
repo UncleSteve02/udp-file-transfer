@@ -26,7 +26,7 @@ from optparse import OptionParser
 import sys
 import struct
 import re
-
+import copy
 
 # #############################################################################
 # Process Arguments
@@ -61,6 +61,13 @@ def ProcessArguments():
     if len(Args) < 0:
         print 'Not enough arguments given.'
         sys.exit()
+
+
+# #############################################################################
+# Used by the sorted function
+# #############################################################################
+def GetKey(item):
+    return item[0]
 
 
 # #############################################################################
@@ -102,15 +109,16 @@ if __name__ == '__main__':
     host = socket.gethostname()
 
     # Connect to server
-    s.connect(('10.0.0.1', port))
-    s.send("root_dns.png")
+    s.connect(('127.0.0.1', port))
+    s.send("Remember The Name.mp3")
     dataBuff = ''
     window = []
+    writeQueue = []
+    lastWriten = []
     total = 0
 
     with open('received_file', 'wb') as f:
         while True:
-            #print 'Waiting for data'
             recData = s.recv(1024)
 
             # Check if the server is done sending the file
@@ -118,7 +126,7 @@ if __name__ == '__main__':
                 break
 
             # Print debug info on packet size
-            if Options.verbose > 0:
+            if Options.verbose > 1:
                 print sys.getsizeof(recData)
 
             # Print debug info on packet data
@@ -162,13 +170,39 @@ if __name__ == '__main__':
 
             # Save last ten packets in window
             if len(window) >= 10:
-                window.pop(0)
+                window.pop(0)  # At most holds one of each packet index
             window.append(recData)
 
+            # Get and save the last ten packets in order
+            for data in window:
+                inQueue = False
+                unpack = struct.unpack('I', data[0:4])
+                packetNum = unpack[0]
+                packetData = data[8:]
+                # Make sure only fresh data is stored in the write queue
+                if [packetNum, packetData] in lastWriten or [packetNum, packetData] in writeQueue:
+                        inQueue = True
+                if not inQueue:
+                    writeQueue.append([packetNum, packetData])
+                if len(writeQueue) == 10:
+                    break
+
+            # Sort the queue so everything gets writen in order
+            writeQueue = sorted(writeQueue, key=GetKey)
+
             # Write data to file
-            packetData = recData[8:]
-            print "Writing packet " + str(packetNum)
-            f.write(packetData)
+            if len(writeQueue) == 10:
+                for writeData in writeQueue:
+                    f.write(writeData[1])
+
+                # Copy the write queue and empty it
+                lastWriten = copy.deepcopy(writeQueue)
+                del(writeQueue[:])
+
+        # Write left over data in the queue
+        for writeData in writeQueue:
+            # print "Writing packet " + str(writeData[0])
+            f.write(writeData[1])
 
         print "Total packets received " + str(total)
         f.close()

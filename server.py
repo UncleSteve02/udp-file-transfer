@@ -152,13 +152,14 @@ def carry_around_add(a, b):
     c = a + b
     return (c & 0xffff) + (c >> 16)
 
+
 def CalculateChecksum(msg):
     s = 0
     for i in range(0, len(msg), 2):
         w = ord(msg[i]) + (ord(msg[i+1]) << 8)
         s = carry_around_add(s, w)
-    checksum = struct.pack('I', (~s & 0xffff))
-    print 'checksum = ', hex(~s & 0xffff)
+    checksum = (~s & 0xffff)
+    print str(checksum)
     return checksum
 
 
@@ -206,9 +207,10 @@ if __name__ == '__main__':
 
             # Set up data packet available
             i = GetNextAvailableNum(window)
-            header = struct.pack('I', i)
+
             checksum = CalculateChecksum(fileData)
-            dataPacket = header + checksum + fileData
+            header = struct.pack('II', i, checksum)
+            dataPacket = header + fileData
 
             # Once the window is full doo not send new data
             while len(window) >= 5:

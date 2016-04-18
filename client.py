@@ -74,7 +74,10 @@ def carry_around_add(a, b):
 def CalculateChecksum(msg):
     s = 0
     for i in range(0, len(msg), 2):
-        w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        # w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        w = ord(msg[i])
+        if (i+1) < len(msg):
+            w += (ord(msg[i+1]) << 8) 
         s = carry_around_add(s, w)
     checksum = (~s & 0xffff)
     # print 'checksum = ', hex(~s & 0xffff)
@@ -99,8 +102,8 @@ if __name__ == '__main__':
     host = socket.gethostname()
 
     # Connect to server
-    s.connect(('127.0.0.1', port))
-    s.send("dragon.jpg")
+    s.connect(('10.0.0.1', port))
+    s.send("root_dns.png")
     dataBuff = ''
     window = []
     total = 0

@@ -156,7 +156,10 @@ def carry_around_add(a, b):
 def CalculateChecksum(msg):
     s = 0
     for i in range(0, len(msg), 2):
-        w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        # w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        w = ord(msg[i])
+        if (i+1) < len(msg):
+            w += (ord(msg[i+1]) << 8) 
         s = carry_around_add(s, w)
     checksum = (~s & 0xffff)
     print str(checksum)
@@ -195,7 +198,7 @@ if __name__ == '__main__':
         window = []
         filename = recData
         try:
-            fileToTransfer = open(filename, 'rb')
+            fileToTransfer = open(str(filename), 'rb')
             print 'Got connection from ', addr
             print 'Server received ', repr(recData)
         except IOError:

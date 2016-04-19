@@ -173,10 +173,13 @@ if __name__ == '__main__':
                 packetData = data[8:]
                 # Make sure only fresh data is stored in the write queue
                 if [packetNum, packetData] in lastWriten or [packetNum, packetData] in writeQueue:
-                        inQueue = True
+                    # Send response indicating the packet has be received
+                    response = 'got packet ' + str(packetNum)
+                    s.send(response)
+                    inQueue = True
                 for writeData in writeQueue:
                     if writeData[0] == packetNum:
-                        inQueue
+                        inQueue = True
                 if not inQueue:
                     writeQueue.append([packetNum, packetData])
 

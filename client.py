@@ -163,10 +163,10 @@ if __name__ == '__main__':
             # Make sure only fresh data is stored in the write queue
             if [packetNum, packetData] in lastWriten or [packetNum, packetData] in writeQueue:
                 # Send response indicating the packet has be received
-                response = 'got packet ' + str(packetNum)
+                response = 'got packet ' + str(packetNum) + ' ' + str(checksum)
                 s.send(response)
                 inQueue = True
-            # If we have not gotten a chance to write the last packet of with this packet number then ingnore it
+            # If we have not gotten a chance to write the last packet of with this packet number then ignore it
             for writeData in writeQueue:
                 if writeData[0] == packetNum:
                     inQueue = True
@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
                 # Only send the response once the packet has been added to the write queue
                 # Send response indicating the packet has be received
-                response = 'got packet ' + str(packetNum)
+                response = 'got packet ' + str(packetNum) + ' ' + str(checksum)
                 s.send(response)
 
                 # Print debug info on response data

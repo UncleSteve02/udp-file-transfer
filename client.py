@@ -147,7 +147,7 @@ if __name__ == '__main__':
             checksum = unpack[0]
 
             # print 'checksum in packet ' + str(checksum)
-            calcChecksum = CalculateChecksum(recData[8:])
+            calcChecksum = CalculateChecksum(recData[0:4] + recData[8:])
             # print 'Calculated checksum ' + str(calcChecksum)
 
             # Check checksum, continue if correct

@@ -211,7 +211,8 @@ if __name__ == '__main__':
             # Set up data packet available
             i = GetNextAvailableNum(window)
 
-            checksum = CalculateChecksum(fileData)
+            header = struct.pack('II', i, 0)
+            checksum = CalculateChecksum(header + fileData)
             header = struct.pack('II', i, checksum)
             dataPacket = header + fileData
 

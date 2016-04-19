@@ -156,14 +156,6 @@ if __name__ == '__main__':
                 print 'Checksums didn\'t match'
                 continue
 
-            # Send response indicating the packet has be received
-            response = 'got packet ' + str(packetNum)
-            s.send(response)
-
-            # Print debug info on response data
-            if Options.verbose > 2:
-                print response
-
             # Check if last packet was a resend
             if recData in window:
                 continue
@@ -187,6 +179,16 @@ if __name__ == '__main__':
                         inQueue
                 if not inQueue:
                     writeQueue.append([packetNum, packetData])
+
+                    # Only send the response once the packet has been added to the write queue
+                    # Send response indicating the packet has be received
+                    response = 'got packet ' + str(packetNum)
+                    s.send(response)
+
+                    # Print debug info on response data
+                    if Options.verbose > 2:
+                        print response
+
                 if len(writeQueue) == 10:
                     break
 

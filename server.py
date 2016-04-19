@@ -129,7 +129,7 @@ def CheckClientResponse(window, s):
         recData, temp = s.recvfrom(1024)  # Non Blocking
         if recData is not None:
             # Get response packet number
-            match = re.search("^got packet (\d)$", recData)
+            match = re.search("^got packet (\d) (.*)$", recData)
             if match:
                 # Remove the corresponding data from the window
                 for data in window:
@@ -137,7 +137,9 @@ def CheckClientResponse(window, s):
                         continue
                     unpack = struct.unpack('I', data[0:4])
                     packetNum = unpack[0]
-                    if packetNum is int(match.group(1)):
+                    unpack = struct.unpack('I', data[4:8])
+                    checksum = unpack[0]
+                    if packetNum == int(match.group(1)) and checksum == int(match.group(2)):
                         window[window.index(data)] = None
 
         SlideWindow(window)

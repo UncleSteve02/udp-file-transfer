@@ -109,8 +109,8 @@ if __name__ == '__main__':
     host = socket.gethostname()
 
     # Connect to server
-    s.connect(('127.0.0.1', port))
-    s.send("Remember The Name.mp3")
+    s.connect(('10.0.0.1', port))
+    s.send("root_dns.png")
     dataBuff = ''
     window = []
     writeQueue = []
@@ -193,6 +193,7 @@ if __name__ == '__main__':
             # Write data to file
             if len(writeQueue) == 10:
                 for writeData in writeQueue:
+                    print 'Writing packet ', str(writeData[0])
                     f.write(writeData[1])
 
                 # Copy the write queue and empty it

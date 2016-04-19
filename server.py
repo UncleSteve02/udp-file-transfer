@@ -129,7 +129,7 @@ def CheckClientResponse(window, s):
         recData, temp = s.recvfrom(1024)  # Non Blocking
         if recData is not None:
             # Get response packet number
-            match = re.search("^.*(\d).*$", recData)
+            match = re.search("^got packet (\d)$", recData)
             if match:
                 # Remove the corresponding data from the window
                 for data in window:

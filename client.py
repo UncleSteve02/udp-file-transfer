@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     # Connect to server
     s.connect(('127.0.0.1', port))
-    s.send("Remember The Name.mp3")
+    s.send("dragon.jpg")
     dataBuff = ''
     window = []
     writeQueue = []
@@ -156,44 +156,31 @@ if __name__ == '__main__':
                 print 'Checksums didn\'t match'
                 continue
 
-            # Check if last packet was a resend
-            if recData in window:
-                continue
-
-            # Save last ten packets in window
-            if len(window) >= 10:
-                window.pop(0)  # At most holds one of each packet index
-            window.append(recData)
-
             # Get and save the last ten packets in order
-            for data in window:
-                inQueue = False
-                unpack = struct.unpack('I', data[0:4])
-                packetNum = unpack[0]
-                packetData = data[8:]
-                # Make sure only fresh data is stored in the write queue
-                if [packetNum, packetData] in lastWriten or [packetNum, packetData] in writeQueue:
-                    # Send response indicating the packet has be received
-                    response = 'got packet ' + str(packetNum)
-                    s.send(response)
-                    inQueue = True
-                for writeData in writeQueue:
-                    if writeData[0] == packetNum:
-                        inQueue = True
-                if not inQueue:
-                    writeQueue.append([packetNum, packetData])
+            inQueue = False
+            packetData = recData[8:]
+            # Make sure only fresh data is stored in the write queue
+            if [packetNum, packetData] in lastWriten or [packetNum, packetData] in writeQueue:
+                # Send response indicating the packet has be received
+                response = 'got packet ' + str(packetNum)
+                s.send(response)
+                inQueue = True
+            # If we have not gotten a chance to write the last packet of with this packet number then ingnore it
+            for writeData in writeQueue:
+                if writeData[0] == packetNum:
+                    continue
 
-                    # Only send the response once the packet has been added to the write queue
-                    # Send response indicating the packet has be received
-                    response = 'got packet ' + str(packetNum)
-                    s.send(response)
+            if not inQueue:
+                writeQueue.append([packetNum, packetData])
 
-                    # Print debug info on response data
-                    if Options.verbose > 2:
-                        print response
+                # Only send the response once the packet has been added to the write queue
+                # Send response indicating the packet has be received
+                response = 'got packet ' + str(packetNum)
+                s.send(response)
 
-                if len(writeQueue) == 10:
-                    break
+                # Print debug info on response data
+                if Options.verbose > 2:
+                    print response
 
             # Sort the queue so everything gets writen in order
             writeQueue = sorted(writeQueue, key=GetKey)

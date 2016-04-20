@@ -8,13 +8,14 @@ Project Name: udp-file-transfer
 # #############################################################################
 usage = """
 
-Description: Add description later
+Description: UDP file transfer server. Waits for a client to request a file
+			 from the server that will be transfered to the client using the
+			 sliding-window technique. The file being transfered to the client
+			 will be stored as "received_file".
 
 Options:
     -v, --verbose       increases verbosity level
     -q, --quiet         zero verbosity level, i.e. no error prints
-
-Example: Add example later
 
 """
 

@@ -8,13 +8,13 @@ Project Name: udp-file-transfer
 # #############################################################################
 usage = """
 
-Description: Add description later
+Description: UDP file transfer client. Requests a file from a server to store
+             on its own system. The file will be stored on the client as 
+             "received_file".
 
 Options:
     -v, --verbose       increases verbosity level
     -q, --quiet         zero verbosity level, i.e. no error prints
-
-Example: Add example later
 
 """
 
